@@ -10,6 +10,7 @@ var stateActions = { preload: preload, create: create, update: update };
 var game = new Phaser.Game(800, 400, Phaser.AUTO, 'game', stateActions);
 
 // Global variables
+var dogeMode = true;
 var score;
 var label_score;
 var player;
@@ -17,10 +18,12 @@ var doge;
 var dogeQuoteColours = ["#00FFFF", "#FF00FF", "#FFFF00"];
 var dogeTexts = ["Much flap", "Such doge", "Very click", "So shibe"];
 var pipes;
-var pipeInterval = 2;
+var pipeInterval = 3;
 var pipeColours = ["pipe_blue", "pipe_green", "pipe_mint", "pipe_orange",
                    "pipe_pink", "pipe_purple", "pipe_red", "pipe_yellow"];
 var pipeLoop;
+var topBorder;
+var bottomBorder;
 
 /* Loads all resources for the game and gives them names. */
 function preload() {
@@ -44,13 +47,14 @@ function preload() {
 function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.stage.setBackgroundColor("#141592");// set the background colour of the scene
-    player = game.add.sprite(50, 168, "bird");
+    if (dogeMode === true) {
+        player = game.add.sprite(50, 168, "playerImg");
+    }
+    else {
+        player = game.add.sprite(50, 168, "bird");
+    }
     game.physics.arcade.enable(player);
     player.body.gravity.y = 900;
-    //game.add.sprite(10, 10, "playerImg");//   Top left
-    //game.add.sprite(10, 326, "playerImg");//  Bottom left
-    //game.add.sprite(726, 10, "playerImg");//  Top right
-    //game.add.sprite(726, 326, "playerImg");// Bottom right
     // Add event handlers
     game.input.onDown.add(onClick);
     game.input.keyboard.addKey(Phaser.Keyboard.ENTER).onDown.add(enterPressed);
@@ -60,26 +64,29 @@ function create() {
     label_score = game.add.text(15, 10, "0", {font: "30px Comic Sans MS", fill: "#FFFFFF"});
     pipes = game.add.group();
     pipeLoop = game.time.events.loop(pipeInterval * Phaser.Timer.SECOND, generatePipe, this);
-
-    //generatePipe();
+    topBorder = game.add.sprite(50, -114, "pipe");
+    bottomBorder = game.add.sprite(50, 464, "pipe");
+    game.physics.arcade.enable(topBorder);
+    game.physics.arcade.enable(bottomBorder);
 }
 
 /* This function updates the scene. It is called for every new frame. */
 function update() {
     game.physics.arcade.overlap(player, pipes, gameOver);
-    /*if (game.rnd.integerInRange(0, 99) === 0) {
-        //enterPressed();
-        if (pipeInterval >= 1) {
-            pipeInterval -= 0.1;
-        }
-
-    }*/
+    game.physics.arcade.overlap(player, bottomBorder, gameOver);
+    game.physics.arcade.overlap(player, topBorder, gameOver);
+    if (game.rnd.integerInRange(0, 99) === 0) {
+        enterPressed();
+        //if (pipeInterval >= 1) {
+        //    pipeInterval -= 0.1;
+        //}
+    }
 }
 
 /* Called whenever any mouse button is clicked. */
 function onClick(event) {// event.y seems to be 0.296875 too low, oddly enough
     //alert("Such click at " + event.x + ", " + (event.y+0.296875));
-    //doge = game.add.sprite(event.x - 32, event.y + 0.296875 - 32, "playerImg");
+    doge = game.add.sprite(event.x - 32, event.y + 0.296875 - 32, "playerImg");
 }
 
 /* Called whenever the spacebar is pressed. */
@@ -113,29 +120,30 @@ function generatePipe () {
         if (count !== gapStart && count !== gapStart + 1 && count !== gapStart + 2) {
             addPipeBlock(800, count * 50, false);
         }
-        if (count === gapStart - 1) {
-            addPipeBlock(798, count * 50 - 12 + 50, true);
-        }
-        if (count === gapStart + 3) {
-            addPipeBlock(798, count * 50, true);
-        }
+        //if (count === gapStart - 1) {
+        //    addPipeBlock(798, count * 50 - 12 + 50, true);
+        //}
+        //if (count === gapStart + 3) {
+        //    addPipeBlock(798, count * 50, true);
+        //}
     }
     changeScore(1);
 }
 
 function addPipeBlock (x,y, b) {
     // Add a new *block* with "pipe" sprite to the pipes *group*
-    if (b === true) {
-        var pipe = pipes.create(x, y, "pipe2_end");
-    }
-    else {
-        //var pipe = pipes.create(x, y, pipeColours[game.rnd.integerInRange(0, pipeColours.length - 1)]);
-        var pipe = pipes.create(x, y, "pipe2");
-    }
+    //if (b === true) {
+    //    var pipe = pipes.create(x, y, "pipe2_end");
+    //}
+    //else {
+        var pipe = pipes.create(x, y, pipeColours[game.rnd.integerInRange(0, pipeColours.length - 1)]);
+        //var pipe = pipes.create(x, y, "pipe2");
+    //}
     game.physics.arcade.enable(pipe);
     pipe.body.velocity.x = -200;
 }
 
 function gameOver () {
-    game.destroy();
+    alert("Your score was " + score.toString() + "!");
+    location.reload();
 }
