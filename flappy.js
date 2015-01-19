@@ -24,6 +24,8 @@ var pipeColours = ["pipe_blue", "pipe_green", "pipe_mint", "pipe_orange",
 var pipeLoop;
 var topBorder;
 var bottomBorder;
+var gameIsStarted;
+var startText;
 
 /* Loads all resources for the game and gives them names. */
 function preload() {
@@ -45,6 +47,7 @@ function preload() {
 
 /* Initialises the game. This function is only called once. */
 function create() {
+    game.paused = true;
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.stage.setBackgroundColor("#141592");// set the background colour of the scene
     if (dogeMode === true) {
@@ -68,6 +71,8 @@ function create() {
     bottomBorder = game.add.sprite(50, 464, "pipe");
     game.physics.arcade.enable(topBorder);
     game.physics.arcade.enable(bottomBorder);
+    startText = game.add.text(120, 168, "<- Space to start", {font: "30px Comic Sans MS", fill: "#FFFFFF"});
+    gameIsStarted = false;
 }
 
 /* This function updates the scene. It is called for every new frame. */
@@ -89,7 +94,7 @@ function onClick(event) {// event.y seems to be 0.296875 too low, oddly enough
     doge = game.add.sprite(event.x - 32, event.y + 0.296875 - 32, "playerImg");
 }
 
-/* Called whenever the spacebar is pressed. */
+/* Called whenever enter is pressed. */
 function enterPressed() {
     game.add.text(game.rnd.integerInRange(0, 600),
         game.rnd.integerInRange(0, 350),
@@ -107,9 +112,14 @@ function changeScore(i) {
     //label_score.setText("Doges: " + score.toString());
     label_score.setText(score.toString());
 }
-
+// Spacebar
 function jump () {
-    player.body.velocity.y = -350
+    player.body.velocity.y = -350;
+    game.paused = false;
+    if (gameIsStarted == false) {
+        startText.destroy();
+        gameIsStarted = true;
+    }
 }
 
 function generatePipe () {
@@ -130,7 +140,7 @@ function generatePipe () {
     changeScore(1);
 }
 
-function addPipeBlock (x,y, b) {
+function addPipeBlock (x,y, b) {// If b, spawn an end instead of a body
     // Add a new *block* with "pipe" sprite to the pipes *group*
     //if (b === true) {
     //    var pipe = pipes.create(x, y, "pipe2_end");
@@ -144,6 +154,7 @@ function addPipeBlock (x,y, b) {
 }
 
 function gameOver () {
+    game.destroy();
     alert("Your score was " + score.toString() + "!");
     location.reload();
 }
